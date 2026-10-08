@@ -44,14 +44,25 @@ exec 漏写分隔符的提示与启动前失败验证。重复初始化测试检
 已检查依赖 feature 图，`chacha20poly1305` 的 `zeroize` feature 确实启用。
 敏感对象在应用退出前结束作用域；这不构成对标准库内部、分配器、OS 或子进程副本全部擦除的证明。
 
+## 发布后的原生验证
+
+公开仓库首次提交 `12ffbc9034195e4e26f0c98c368f957a6b0142e4` 触发了
+[原生 CI](https://github.com/HeimaoLST/molso/actions/runs/37801319799)。
+三个环境均使用 Rust 1.99.0；下表记录实际已完成的结果，不把排队任务计为通过。
+
+| 平台 | 原生结果 | 证据 |
+| --- | --- | --- |
+| macOS / aarch64 | 本机 fmt、clippy、30 项测试通过；GitHub macOS runner 尚在排队 | 上述本机记录 |
+| Linux / x86_64 GNU | fmt、clippy、30 项测试通过；无跳过的 PTY 检查 | [Ubuntu job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986537) |
+| Windows / x86_64 MSVC | fmt、clippy、26 项测试通过 | [Windows job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986265) |
+
+Windows 创建时的当前用户 DACL、Unicode 环境名大小写碰撞和 32 位退出码保留
+已经在原生 CI 实际执行。macOS 格式 v1 测试文件在三个平台均可读取，并在原生
+更新后保持原条目可读。Linux 的隐藏输入和空输入保护也经过真实 PTY 验证。
+
 ## 剩余验证
 
-Linux 和 Windows 本轮完成交叉编译检查，没有执行原生测试或跨平台链接。
-`.github/workflows/ci.yml` 已配置 macOS、Linux、Windows 原生测试矩阵，尚未在远端运行。
-Windows 原生用例包括创建时的当前用户 DACL、Unicode 环境名大小写碰撞和 32 位退出码保留。
-这些用例已通过编译检查，仍需 Windows 实际执行。
-
-尚未验证 Windows TTY、Windows 目录持久化、各 shell 的管道转换和真实掉电恢复。
-跨平台互读测试目前只在 macOS 执行；其它平台需要运行该测试，才能确认实际兼容性。
+尚未专项验证 Windows 交互终端输入、Windows 目录持久化、各 shell 的管道转换和
+真实掉电恢复。Rust 1.89 是声明的最低版本，目前验证使用的是 1.99.0。
 
 使用契约和已接受的密钥文件、管道及子进程输出边界见 [usage.md](usage.md)。

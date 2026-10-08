@@ -219,5 +219,6 @@ child exit status is preserved as a 32-bit value.
   transcode.
 - Crash/power-loss recovery depends on the filesystem; Windows directory
   persistence has not been verified natively.
-- macOS is validated locally; Linux and Windows are cross-checked and covered
-  by CI configuration but not claimed as native acceptance.
+- Native automated tests have passed on macOS locally and on Linux/Windows
+  in CI. See [validation.md](validation.md) for the exact scope; this does not
+  establish Windows console-input, shell-conversion, or power-loss guarantees.
