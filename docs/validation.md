@@ -48,12 +48,12 @@ exec 漏写分隔符的提示与启动前失败验证。重复初始化测试检
 
 公开仓库首次提交 `12ffbc9034195e4e26f0c98c368f957a6b0142e4` 触发了
 [原生 CI](https://github.com/HeimaoLST/molso/actions/runs/37801319799)。
-三个环境均使用 Rust 1.99.0；下表记录实际已完成的结果，不把排队任务计为通过。
+三个环境均使用 Rust 1.99.0，原生 CI 的 fmt、clippy 和测试全部通过。
 
 | 平台 | 原生结果 | 证据 |
 | --- | --- | --- |
-| macOS / aarch64 | 本机 fmt、clippy、30 项测试通过；GitHub macOS runner 尚在排队 | 上述本机记录 |
-| Linux / x86_64 GNU | fmt、clippy、30 项测试通过；无跳过的 PTY 检查 | [Ubuntu job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986537) |
+| macOS / aarch64 | 本机及 CI 的 fmt、clippy、30 项测试通过 | [macOS job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986636) |
+| Linux / x86_64 GNU | fmt、clippy、30 项测试通过；包含 Unix PTY 用例 | [Ubuntu job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986537) |
 | Windows / x86_64 MSVC | fmt、clippy、26 项测试通过 | [Windows job](https://github.com/HeimaoLST/molso/actions/runs/37801319799/job/113393986265) |
 
 Windows 创建时的当前用户 DACL、Unicode 环境名大小写碰撞和 32 位退出码保留
