@@ -14,10 +14,11 @@ The command that needs a token should receive it directly.
 
 > 面向 AI Agent 的本地密码管理器。人录入凭据，agent 只使用名称；凭据通过 stdin 或子进程环境变量交付。
 
-![Actual molso terminal session: hidden input, credential delivery, and an empty import rejected](docs/assets/demo.gif)
+![molso uses env, stdin, and a get pipeline to call a local authenticated API and return the user](docs/assets/demo.gif)
 
-*Recorded from real CLI processes with a fictional credential. The demo consumer
-compares the received bytes and reports the result; it does not contact a service.*
+*Real CLI recording with a fictional token and a local demo API. Each request
+authenticates, returns HTTP 200, and reads the user `demo-agent`. The `demo-api`
+client and server are created by the recording script; this does not contact GitHub.*
 
 ## Get started
 
@@ -44,12 +45,14 @@ molso list
 With [GitHub CLI](https://cli.github.com/) installed, the agent can now run:
 
 ```sh
-molso exec --env GH_TOKEN=github/agent -- gh auth status
+molso exec --env GH_TOKEN=github/agent -- gh api user --jq .login
 ```
 
 GitHub CLI supports [GH_TOKEN](https://cli.github.com/manual/gh_help_environment).
 molso sets it only in the child process; your current shell is unchanged.
-Choose a receiving command that does not print the token.
+The command calls the [authenticated user API](https://docs.github.com/en/rest/users/users#get-the-authenticated-user)
+and prints the account's login, so the agent receives the result of using the
+token. Choose a receiving command that does not print the token itself.
 
 To try without installing, use `cargo build --release` and
 `./target/release/molso` (Windows: `.\target\release\molso.exe`).
@@ -60,7 +63,7 @@ Use the interface the receiving command supports:
 
 | The command expects | Invocation |
 | --- | --- |
-| An environment variable | `molso exec --env GH_TOKEN=github/agent -- gh auth status` |
+| An environment variable | `molso exec --env GH_TOKEN=github/agent -- gh api user --jq .login` |
 | Credential bytes on stdin | `molso exec --stdin service/account -- consumer` |
 | A native shell pipeline | `molso get service/account \| consumer` |
 
@@ -68,13 +71,28 @@ Use the interface the receiving command supports:
 credential, then closes it. Use `--env` if it also needs other input on stdin.
 Repeat `--env` for several credentials.
 
-The **`--` is required**. Everything after it belongs to the child, including
-its `--help`. molso runs the executable directly, without starting a shell.
+`get` outputs the credential. In `molso get service/account | consumer`, its
+stdout is connected to the consumer's stdin. The consumer can authenticate a
+request and print the response; that response is what the agent sees. The GIF
+shows this with `molso get demo/agent | ./demo-api /user --stdin`.
 
-**Do not call `get` alone from an agent tool runner.** It refuses terminal
-output, but a tool runner's non-terminal stdout can still be captured in logs.
-Keep `get` and its consumer in one shell invocation, or use `exec`.
+The **`--` in exec is required**. Everything after it belongs to the child,
+including its `--help`. molso runs the executable directly, without starting a shell.
+
 For byte-sensitive cross-platform delivery, prefer `exec --stdin`.
+
+<details>
+<summary>Why does get refuse a terminal?</summary>
+
+Running `molso get service/account` directly in a terminal would display the
+credential, so that invocation is refused. A pipe to a consumer is supported
+and delivers the credential normally.
+
+An agent tool runner may capture stdout even when it is not a terminal.
+Always include the consumer in the same shell invocation; calling `get` alone
+could put the value into the agent's logs. `exec` connects the processes for you.
+
+</details>
 
 ## Updating and importing
 
